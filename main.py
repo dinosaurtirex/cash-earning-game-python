@@ -14,8 +14,8 @@ ai_coords = [
     [16,16]
 ]
 
-game_size_y = 10
-game_size_x = 32
+game_size_y = 48
+game_size_x = 128
 
 money_each_row = 32
 

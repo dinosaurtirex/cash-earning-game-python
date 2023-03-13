@@ -9,3 +9,6 @@
 * Use w a s d keys to controll you'r main character with name of HASHTAG
 
 ### There is no any extra libraries required to run this game! Just run main.py and go! Do it
+
+
+![Alt Text](gameplay.gif)
