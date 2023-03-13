@@ -6,7 +6,13 @@ import random as r
 
 
 user_coords = [5, 5]
-ai_coords = [6, 6]
+ai_coords = [
+    [6, 6],
+    [7, 7],
+    [10,31],
+    [5,12],
+    [16,16]
+]
 
 game_size_y = 10
 game_size_x = 32
@@ -16,6 +22,7 @@ money_each_row = 32
 tick = 0.1
 
 user_score = 0
+ai_score = 0
 
 exit_app = False 
 
@@ -46,6 +53,7 @@ class Renderer:
 
     def update_frame(self, objects_coords: list[Coordinate]):
         print(f"CASH EARNED: {user_score}")
+        print(f"AI CASH EARNED: {ai_score}")
         for y in range(self.size_y):
             for x in range(self.size_x):
                 if [x, y] in objects_coords:
@@ -141,14 +149,18 @@ class GameService(Renderer):
             entities.append([x, y])
     
     def entity_intersection_check(self, x, y, i, objects_coords: list[Coordinate]) -> list[Coordinate]:
-        global user_score
+        global user_score, user_coords, ai_coords, ai_score
         
         if len(entities) == 0:
             self.generate_new_entities()
 
         if [x, y] in entities:
             entities.remove([x, y])
-            user_score += 1
+            if [x, y] == user_coords:
+                user_score += 1
+            for coord in ai_coords:
+                if [x, y] == coord:
+                    ai_score += 1
         return objects_coords
 
     def update_game_frame(self, objects_coords: list[Coordinate]):
@@ -172,14 +184,54 @@ def renderer():
             user_coords[0],
             user_coords[1]
         )
-        ai_coord = Coordinate(
-            ai_coords[0],
-            ai_coords[1]
-        )
+        ai_coords_local = []
+        for item in ai_coords:
+            ai_coords_local.append(Coordinate(item[0], item[1]))
+
         r = GameService(game_size_x, game_size_y)
-        r.update_game_frame([coords.get_coords(), ai_coord.get_coords()])
+
+        frame_coords = []
+        for i in ai_coords_local:
+            frame_coords.append(i.get_coords())
+        frame_coords.append(coords.get_coords())
+        r.update_game_frame(frame_coords)
         time.sleep(tick)
         os.system("cls")
+
+
+class AIController(AIService):
+
+    def run_controller(self) -> None:
+        global tick, ai_coords
+
+        while True:
+            
+            if exit_app == True:
+                exit(0)
+
+            for item in ai_coords:
+
+                # Get player coordinates 
+                x, y = item[0], item[1]
+
+                # Calculate path to target coordinates
+
+                key = AIService().find_path_to_object(
+                    x, y
+                )
+
+                # Do action 
+                
+                if key == "d":
+                    item[0] = item[0] + 1
+                if key == "a":
+                    item[0] = item[0] - 1
+                if key == "s":
+                    item[1] = item[1] + 1
+                if key == "w":
+                    item[1] = item[1] - 1
+
+                time.sleep(tick)
 
 
 def ai_controller():
@@ -243,7 +295,7 @@ def main():
     threads = [
         threading.Thread(target=key_input),
         threading.Thread(target=renderer),
-        threading.Thread(target=ai_controller)
+        threading.Thread(target=AIController().run_controller)
     ]
     for th in threads:
         th.start()
